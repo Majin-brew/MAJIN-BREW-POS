@@ -1,0 +1,252 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAJIN BREW | POS</title>
+<style>
+:root {
+  --bg:#090909;
+  --panel:#151313;
+  --red:#b51224;
+  --maroon:#65000d;
+  --text:#fff;
+  --muted:#aaa;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font-family:Arial,sans-serif;
+}
+header{
+  background:#12090b;border-bottom:1px solid #451018;
+  padding:17px 22px;display:flex;justify-content:space-between;
+  align-items:center;position:sticky;top:0;z-index:5;
+}
+.brand{font-size:21px;font-weight:900;letter-spacing:2px}
+.brand span{color:#e32238}
+header small{color:#aaa}
+.layout{display:grid;grid-template-columns:190px 1fr 320px;min-height:calc(100vh - 60px)}
+nav{padding:20px 12px;border-right:1px solid #302124}
+nav button{
+  display:block;width:100%;padding:13px;margin-bottom:7px;
+  text-align:left;background:transparent;color:#ccc;border:0;
+  border-radius:8px;cursor:pointer;font-size:14px
+}
+nav button.active,nav button:hover{background:var(--maroon);color:white}
+main{padding:22px;min-width:0}
+h2{margin-top:0}
+.muted{color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0}
+.stat,.product,.cart{
+  background:var(--panel);border:1px solid #302124;border-radius:12px;
+}
+.stat{padding:15px}
+.stat strong{display:block;font-size:22px;margin-top:8px}
+.tools{display:flex;gap:9px;flex-wrap:wrap;margin:18px 0}
+input,select{
+  background:#211b1c;color:white;border:1px solid #493238;
+  padding:12px;border-radius:8px;min-width:0
+}
+.tools input{flex:1}
+.categories{display:flex;gap:8px;overflow:auto;margin-bottom:16px}
+.categories button,.action{
+  background:#2b171b;color:white;border:1px solid #61303a;
+  border-radius:8px;padding:10px 14px;cursor:pointer
+}
+.categories button.active,.action.primary{background:var(--red);border-color:var(--red)}
+.products{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.product{padding:14px;cursor:pointer;min-width:0}
+.product:hover{border-color:var(--red)}
+.product .emoji{font-size:34px;margin-bottom:10px}
+.product h3{font-size:14px;margin:5px 0}
+.price{color:#ff6474;font-weight:bold}
+.cart{padding:18px;border-radius:0;border-top:0;border-bottom:0}
+.cart h2{margin-bottom:20px}
+.cart-item{border-bottom:1px solid #38282b;padding:12px 0}
+.cart-item strong{display:block}
+.qty{display:flex;align-items:center;gap:12px;margin-top:8px}
+.qty button{background:#392027;color:white;border:0;padding:5px 10px;border-radius:5px}
+.total-line{display:flex;justify-content:space-between;margin:12px 0}
+.grand{font-size:20px;font-weight:bold;border-top:1px solid #554047;padding-top:15px}
+.action{width:100%;margin-top:9px}
+.empty{color:#999;text-align:center;padding:35px 5px}
+.page{display:none}
+.page.active{display:block}
+@media(max-width:900px){
+ .layout{grid-template-columns:1fr}
+ nav{display:flex;overflow:auto;padding:8px;border-right:0;border-bottom:1px solid #302124}
+ nav button{min-width:max-content;width:auto;margin:0 4px}
+ .cart{border:1px solid #302124;border-radius:12px;margin:0 14px 20px}
+}
+@media(max-width:520px){
+ main{padding:14px}
+ .products{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .stats{grid-template-columns:1fr 1fr}
+ .stat:last-child{grid-column:span 2}
+ header{padding:14px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">MAJIN <span>BREW</span></div>
+  <small>COFFEE SERVICE · POS</small>
+</header>
+
+<div class="layout">
+<nav>
+  <button class="active" onclick="showPage('cashier',this)">🛒 Kasir</button>
+  <button onclick="showPage('dashboard',this)">📊 Dashboard</button>
+  <button onclick="showPage('menu',this)">☕ Menu & Resep</button>
+  <button onclick="showPage('stock',this)">📦 Stok & Pembelian</button>
+  <button onclick="showPage('finance',this)">💰 Keuangan</button>
+  <button onclick="showPage('staff',this)">👥 Karyawan & Shift</button>
+  <button onclick="showPage('settings',this)">⚙️ Pengaturan</button>
+</nav>
+
+<main>
+<section id="cashier" class="page active">
+<h2>Kasir</h2>
+<div class="muted">Pilih minuman untuk memulai pesanan.</div>
+<div class="tools">
+<input id="search" placeholder="Cari menu..." oninput="renderProducts()">
+</div>
+<div class="categories" id="categories"></div>
+<div class="products" id="products"></div>
+</section>
+
+<section id="dashboard" class="page">
+<h2>Dashboard</h2>
+<div class="muted">Ringkasan penjualan sesi ini</div>
+<div class="stats">
+<div class="stat">Total Penjualan<strong id="sales">Rp0</strong></div>
+<div class="stat">Transaksi<strong id="orders">0</strong></div>
+<div class="stat">Status<strong>Aktif</strong></div>
+</div>
+<h3>MAJIN BREW</h3>
+<p class="muted">Dashboard siap dikembangkan dengan data database cloud.</p>
+</section>
+
+<section id="menu" class="page">
+<h2>Menu & Resep</h2>
+<p class="muted">Daftar menu saat ini.</p>
+<div id="menuList"></div>
+</section>
+
+<section id="stock" class="page">
+<h2>Stok & Pembelian</h2>
+<p class="muted">Modul pencatatan bahan baku akan dihubungkan ke database.</p>
+</section>
+<section id="finance" class="page">
+<h2>Keuangan & Laporan</h2>
+<p class="muted">Laporan pemasukan dan pengeluaran akan dikembangkan berikutnya.</p>
+</section>
+<section id="staff" class="page">
+<h2>Karyawan & Shift</h2>
+<p class="muted">Pengelolaan akun dan shift karyawan akan dikembangkan berikutnya.</p>
+</section>
+<section id="settings" class="page">
+<h2>Pengaturan</h2>
+<p class="muted">Pajak transaksi saat ini: 11%.</p>
+</section>
+</main>
+
+<aside class="cart">
+<h2>Pesanan</h2>
+<div id="cartItems"><div class="empty">Belum ada pesanan</div></div>
+<div class="total-line"><span>Subtotal</span><strong id="subtotal">Rp0</strong></div>
+<div class="total-line"><span>Pajak (11%)</span><strong id="tax">Rp0</strong></div>
+<div class="total-line grand"><span>Total</span><span id="total">Rp0</span></div>
+<button class="action primary" onclick="checkout()">Bayar & Selesaikan</button>
+<button class="action" onclick="clearCart()">Kosongkan Pesanan</button>
+</aside>
+</div>
+
+<script>
+const productsData=[
+{name:"Es Kopi Susu",price:18000,cat:"Coffee",emoji:"🥤"},
+{name:"Americano",price:16000,cat:"Coffee",emoji:"☕"},
+{name:"Matcha Latte",price:20000,cat:"Non Coffee",emoji:"🍵"},
+{name:"Caramel Macchiato",price:22000,cat:"Coffee",emoji:"🥤"},
+{name:"Thai Tea",price:20000,cat:"Non Coffee",emoji:"🧋"},
+{name:"Chocolate",price:20000,cat:"Non Coffee",emoji:"🍫"},
+{name:"Cookies & Cream",price:22000,cat:"Non Coffee",emoji:"🍪"},
+{name:"Berry Latte",price:22000,cat:"Non Coffee",emoji:"🍓"},
+{name:"Matcha Choco",price:22000,cat:"Non Coffee",emoji:"🍵"}
+];
+let cart=[];
+let category="Semua";
+let sales=0,orders=0;
+const money=n=>"Rp"+Math.round(n).toLocaleString("id-ID");
+
+function renderCategories(){
+ const cats=["Semua","Coffee","Non Coffee"];
+ document.getElementById("categories").innerHTML=cats.map(c=>
+ `<button class="${category===c?'active':''}" onclick="setCategory('${c}')">${c}</button>`
+ ).join("");
+}
+function setCategory(c){category=c;renderCategories();renderProducts()}
+function renderProducts(){
+ const q=document.getElementById("search").value.toLowerCase();
+ const list=productsData.filter(p=>(category==="Semua"||p.cat===category)&&p.name.toLowerCase().includes(q));
+ document.getElementById("products").innerHTML=list.map(p=>
+ `<div class="product" onclick="addCart('${p.name}')">
+ <div class="emoji">${p.emoji}</div><h3>${p.name}</h3>
+ <div class="price">${money(p.price)}</div><small class="muted">${p.cat}</small></div>`
+ ).join("");
+}
+function addCart(name){
+ const p=productsData.find(x=>x.name===name);
+ const found=cart.find(x=>x.name===name);
+ if(found)found.qty++;else cart.push({...p,qty:1});
+ renderCart();
+}
+function renderCart(){
+ const el=document.getElementById("cartItems");
+ el.innerHTML=cart.length?cart.map((p,i)=>
+ `<div class="cart-item"><strong>${p.name}</strong>
+ <span class="price">${money(p.price*p.qty)}</span>
+ <div class="qty">
+ <button onclick="changeQty(${i},-1)">−</button>
+ <span>${p.qty}</span>
+ <button onclick="changeQty(${i},1)">+</button>
+ </div></div>`).join(""):'<div class="empty">Belum ada pesanan</div>';
+ const sub=cart.reduce((s,p)=>s+p.price*p.qty,0);
+ const tax=sub*.11;
+ document.getElementById("subtotal").textContent=money(sub);
+ document.getElementById("tax").textContent=money(tax);
+ document.getElementById("total").textContent=money(sub+tax);
+}
+function changeQty(i,n){
+ cart[i].qty+=n;
+ if(cart[i].qty<=0)cart.splice(i,1);
+ renderCart();
+}
+function clearCart(){cart=[];renderCart()}
+function checkout(){
+ if(!cart.length){alert("Pesanan masih kosong.");return}
+ const sub=cart.reduce((s,p)=>s+p.price*p.qty,0);
+ const total=sub*1.11;
+ if(!confirm("Selesaikan pembayaran sebesar "+money(total)+"?"))return;
+ sales+=total;orders++;
+ alert("Terima kasih! Pesanan berhasil diselesaikan.");
+ clearCart();
+ document.getElementById("sales").textContent=money(sales);
+ document.getElementById("orders").textContent=orders;
+}
+function showPage(id,btn){
+ document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+ document.getElementById(id).classList.add("active");
+ document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
+ btn.classList.add("active");
+}
+document.getElementById("menuList").innerHTML=productsData.map(p=>
+ `<p>${p.emoji} ${p.name} — <strong>${money(p.price)}</strong></p>`
+).join("");
+renderCategories();renderProducts();renderCart();
+</script>
+</body>
+  </html>
+  
